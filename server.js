@@ -1,51 +1,75 @@
 const express = require('express');
-var fs = require("fs");
 const app = express()
 app.use(express.json())
 const port = 3000
+const axios = require('axios').default;
+var fs = require("fs");
 
-app.get('/', (req, res) => {
-   res.send('Hello World!')
-})
+app.post('/*', (req, res) => {
 
-app.get('/listUsers', (req, res) => {
-   fs.readFile(__dirname + "/" + "user.json", 'utf8', function (err, data) {
-      if (err) {
-         return console.log(err);
+   let headerAuth = req.headers.authorization
+   let url = req.url.slice(1)
+
+   const config = {
+      headers: {
+         'Content-Type': 'application/json',
+         'Authorization': headerAuth,
+         'Accept-Encoding': 'gzip, deflate, br',
       }
+   }
 
-      console.log(data);
-      res.end(data);
-   });
-})
+   const sendPostRequest = async () => {
+      try {
+         const resp = await axios.post(url, req.body, config);
 
-app.post('/addUser', function (req, res) {
-   fs.readFileSync(__dirname + "/" + "user.json", 'utf8', function (err, data) {
-      if (err) {
-         return console.log(err);
+         res.setHeader('Content-Type', 'application/json')
+         res.end(JSON.stringify(resp.data))
+
+         writeToFile('Post', url, req.headers, req.body, resp.headers, resp.data)
+
+      } catch (err) {
+         console.error(err);
       }
-
-   var data = data.concat(JSON.stringify(req.body))
-
-   console.log(data)
-
-   res.end( data );
-
-   // fs.writeFileSync(__dirname + "/" + "user.json", `${data}`), function(err){
-   //    if(err){
-   //       return console.log(err)
-   //    }
-   // }
-
-   });
+   };
+   sendPostRequest();
 })
 
-app.post('/addUserTest', (req, res) => {
-   console.log(req.body)
+app.get('/*', (req, res) => {
 
-   res.end("Yep");
+   let headerAuth = req.headers.authorization
+   let url = req.url.slice(1)
+
+   const config = {
+      headers: {
+         'Content-Type': 'application/json',
+         'Authorization': headerAuth,
+         'Accept-Encoding': 'gzip, deflate, br',
+      }
+   }
+   
+   axios.get(url, config)
+       .then(resp => {
+         res.setHeader('Content-Type', 'application/json')
+         res.end(JSON.stringify(resp.data))
+
+         writeToFile("Get", url, req.headers, req.body, resp.headers, resp.data)
+
+       })
+       .catch(err => {
+           // Handle Error Here
+           console.error(err);
+       });
 })
+
+function writeToFile(RequestType ,RequestUrl, RequestHeaders, RequestBody, ResponseHeaders, ResponseBody) {
+   fs.writeFileSync(`./data/${RequestType}-${Math.floor(Date.now() / 1000)}.json`,
+      "Request towards: \n" + RequestUrl +
+      "\n\nRequest Headers: \n" + JSON.stringify(RequestHeaders, null, 2) +
+      "\nRequest Body: \n" + JSON.stringify(RequestBody, null, 2) +
+      "\nResponse Headers: \n" + JSON.stringify(ResponseHeaders, null, 2) +
+      "\nResponse Body: \n" + JSON.stringify(ResponseBody, null, 2))
+}
 
 app.listen(port, () => {
-   console.log(`Listening on ${port}`)
+   console.log(`Listening on http://127.0.0.1:${port}/`)
 })
