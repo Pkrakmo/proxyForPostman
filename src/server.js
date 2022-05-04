@@ -21,16 +21,16 @@ app.post('/*', (req, res) => {
     const sendPostRequest = async () => {
         try {
             const resp = await axios.post(url, req.body, config);
-
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify(resp.data))
-
             writeToFile('Post', url, req.headers, req.body, resp.headers, resp.data)
-
         } catch (err) {
-            console.error(err);
-        }
-    };
+            res.status(err.response.status)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(err.response.data))
+            writeToFile("Get", url, req.headers, req.body, err.response.headers, err.response.data)
+         }
+      };
     sendPostRequest();
 })
 
@@ -56,10 +56,44 @@ app.get('/*', (req, res) => {
 
         })
         .catch(err => {
-            // Handle Error Here
-            console.error(err);
-        });
+            res.status(err.response.status)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(err.response.data))
+            writeToFile("Get", url, req.headers, req.body, err.response.headers, err.response.data)
+         });
 })
+
+app.put('/*', (req, res) => {
+
+    let headerAuth = req.headers.authorization
+    let url = req.url.slice(1)
+ 
+    const config = {
+       headers: {
+          'Content-Type': 'application/json',
+          'Authorization': headerAuth,
+          'Accept-Encoding': 'gzip, deflate, br',
+       }
+    }
+ 
+    const sendPutRequest = async () => {
+       try {
+          const resp = await axios.put(url, req.body, config);
+          writeToFile("Put", url, req.headers, req.body, resp.headers, resp.data)
+          console.log(resp.data);
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(resp.data))
+       } catch (err) {
+          res.status(err.response.status)
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(err.response.data))
+          writeToFile("Put", url, req.headers, req.body, err.response.headers, err.response.data)
+       }
+    };
+ 
+    sendPutRequest();
+ 
+ })
 
 function writeToFile(RequestType, RequestUrl, RequestHeaders, RequestBody, ResponseHeaders, ResponseBody) {
     fs.writeFileSync(`${__dirname}\\data\\${RequestType}-${Math.floor(Date.now() / 1000)}.json`,
@@ -71,7 +105,6 @@ function writeToFile(RequestType, RequestUrl, RequestHeaders, RequestBody, Respo
 
         const listenFileCreation = document.getElementById('listenFileCreation');
         listenFileCreation.innerHTML = `${RequestType}-${Math.floor(Date.now() / 1000)}.json has been created`
-
 }
 
 const startBtn = document.getElementById('startBtn');

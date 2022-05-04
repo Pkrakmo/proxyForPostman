@@ -87,4 +87,6 @@ typings/
 
 # Electron-Forge
 out/
-src/data
+
+# Custom
+src/data/*
