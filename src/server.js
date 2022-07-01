@@ -1,5 +1,4 @@
 // TODO: 
-// add PATCH
 // Better error handlig
 
 const express = require('express');
@@ -18,7 +17,6 @@ app.post('/*', (req, res) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': headerAuth,
-            'Accept-Encoding': 'gzip, deflate, br',
         }
     }
 
@@ -47,7 +45,6 @@ app.get('/*', (req, res) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': headerAuth,
-            'Accept-Encoding': 'gzip, deflate, br',
         }
     }
 
@@ -75,7 +72,6 @@ app.put('/*', (req, res) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': headerAuth,
-            'Accept-Encoding': 'gzip, deflate, br',
         }
     }
 
@@ -107,7 +103,6 @@ app.delete('/*', (req, res) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': headerAuth,
-            'Accept-Encoding': 'gzip, deflate, br',
         }
     }
 
@@ -135,7 +130,6 @@ app.patch('/*', (req, res) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': headerAuth,
-            'Accept-Encoding': 'gzip, deflate, br',
         }
     }
 
@@ -159,29 +153,58 @@ app.patch('/*', (req, res) => {
 })
 
 function writeToFile(RequestType, RequestUrl, RequestHeaders, RequestBody, ResponseHeaders, ResponseBody) {
-    fs.writeFileSync(`${__dirname}\\data\\${RequestType}-${Math.floor(Date.now() / 1000)}.json`,
+
+    let filePath = `${__dirname}\\data\\${RequestType}-${Math.floor(Date.now() / 1000)}.json`
+
+    fs.writeFileSync(filePath,
         "Request towards: \n" + RequestUrl +
         "\n\nRequest Headers: \n" + JSON.stringify(RequestHeaders, null, 2) +
         "\nRequest Body: \n" + JSON.stringify(RequestBody, null, 2) +
         "\nResponse Headers: \n" + JSON.stringify(ResponseHeaders, null, 2) +
         "\nResponse Body: \n" + JSON.stringify(ResponseBody, null, 2))
 
+    console.log(filePath)
     const listenFileCreation = document.getElementById('listenFileCreation');
-    listenFileCreation.innerHTML = `${RequestType}-${Math.floor(Date.now() / 1000)}.json has been created`
+    listenFileCreation.innerHTML = `${filePath} has been created`
 }
 
 const startBtn = document.getElementById('startBtn');
 const listenMessage = document.getElementById('listenMessage');
 
-startBtn.onclick = e => {
-    app.listen(port, () => {
-        listenMessage.innerHTML = `Listening on http://127.0.0.1:${port}/`
-        startBtn.classList.add('is-danger');
-        startBtn.innerText = 'Proxy is running';
-        startBtn.disabled = true
-    })
-};
+ startBtn.onclick = e => {
+
+    makeDir()
+
+     app.listen(port, () => {
+         listenMessage.innerHTML = `Listening on http://127.0.0.1:${port}/`
+         startBtn.classList.add('is-danger');
+         startBtn.innerText = 'Proxy is running';
+         startBtn.disabled = true
+     })
+ };
 
 function copyUrl() {
     navigator.clipboard.writeText(`http://127.0.0.1:${port}/`);
 }
+
+ function makeDir(){
+    const path = require('path');
+   
+    fs.mkdir(path.join(__dirname, 'data'), (err) => {
+        if (err) {
+            return console.log(err);
+        }
+        console.log('Directory created successfully!');
+    });
+ }
+
+//  function startApp(){
+//     app.listen(port, () => {
+//     console.log(`Listening on http://127.0.0.1:${port}/`)
+//   })
+
+//   makeDir()
+
+// }
+
+//  startApp()
