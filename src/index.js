@@ -14,22 +14,38 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    // width: 335,
-    // height: 259,
-    width: 800,
-    height: 800,
+    width: 335,
+    height: 259,
+    show: false,
     autoHideMenuBar: true,
+    alwaysOnTop: false ,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     }
   });
 
+  var splash = new BrowserWindow({
+    width: 335, 
+    height: 259, 
+    transparent: true, 
+    frame: false, 
+    alwaysOnTop: true 
+});
+
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  splash.loadFile(path.join(__dirname,'splash.html'));
+  splash.center();
+  setTimeout(function () {
+    splash.close();
+    mainWindow.loadFile(path.join(__dirname, 'index.html'));
+    mainWindow.center();
+    mainWindow.show();
+  }, 3000);
+  
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
